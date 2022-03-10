@@ -22,25 +22,29 @@ type envs struct {
 
 func main() {
 	envs := loadEnvs()
-	log := configLog(envs)
+	log := configLog(envs).WithFields(logrus.Fields{
+		"app": "pre-separacao",
+	})
 
 	log.Info("Hello, World!")
 }
 
-func configLog(envs envs) *logrus.Entry {
+func configLog(envs envs) *logrus.Logger {
 
-	ttFormat := "2006-01-02 15:04:05.123"
+	logger := logrus.New()
+	timestampFormat := "2006-01-02 15:04:05.0000"
+
+	formatter := logrus.Formatter(&logrus.TextFormatter{
+		DisableColors:    false,
+		FullTimestamp:    true,
+		TimestampFormat:  timestampFormat,
+		QuoteEmptyFields: true,
+	})
+
 	if envs.environment == "prd" || envs.logJSON {
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: ttFormat,
-		})
-	} else {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			DisableColors:    true,
-			FullTimestamp:    true,
-			TimestampFormat:  ttFormat,
-			QuoteEmptyFields: true,
-		})
+		formatter = &logrus.JSONFormatter{
+			TimestampFormat: timestampFormat,
+		}
 	}
 
 	level, err := logrus.ParseLevel(envs.logLevel)
@@ -48,12 +52,12 @@ func configLog(envs envs) *logrus.Entry {
 		level = logrus.InfoLevel
 	}
 
-	logrus.SetLevel(level)
-	logrus.SetReportCaller(logrus.GetLevel() == logrus.DebugLevel)
+	logger.SetLevel(level)
+	logger.SetFormatter(formatter)
+	logger.SetReportCaller(level == logrus.DebugLevel)
+	logger.Out = os.Stdout
 
-	return logrus.WithFields(logrus.Fields{
-		"app": "pre-separacao",
-	})
+	return logger
 }
 
 func loadEnvs() envs {
