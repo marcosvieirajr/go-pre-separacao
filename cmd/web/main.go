@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 type envs struct {
@@ -21,6 +22,38 @@ type envs struct {
 
 func main() {
 	envs := loadEnvs()
+	log := configLog(envs)
+
+	log.Info("Hello, World!")
+}
+
+func configLog(envs envs) *logrus.Entry {
+
+	ttFormat := "2006-01-02 15:04:05.123"
+	if envs.environment == "prd" || envs.logJSON {
+		logrus.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: ttFormat,
+		})
+	} else {
+		logrus.SetFormatter(&logrus.TextFormatter{
+			DisableColors:    true,
+			FullTimestamp:    true,
+			TimestampFormat:  ttFormat,
+			QuoteEmptyFields: true,
+		})
+	}
+
+	level, err := logrus.ParseLevel(envs.logLevel)
+	if err != nil {
+		level = logrus.InfoLevel
+	}
+
+	logrus.SetLevel(level)
+	logrus.SetReportCaller(logrus.GetLevel() == logrus.DebugLevel)
+
+	return logrus.WithFields(logrus.Fields{
+		"app": "pre-separacao",
+	})
 }
 
 func loadEnvs() envs {
