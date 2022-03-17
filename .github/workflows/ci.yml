@@ -1,0 +1,35 @@
+name: CI Go
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  build-end-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetch required Go modules
+        run: |
+          go mod download
+
+      # (Optional)
+      - name: Build
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags nomsgpack -ldflags="-s -w" -a -o /server ./cmd/web
+
+      - name: Run tests 
+        run: |
+          # make test
+          go test -v -cover ./...
