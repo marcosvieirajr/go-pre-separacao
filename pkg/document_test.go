@@ -1,102 +1,22 @@
 package pkg
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDocument_Separar(t *testing.T) {
+func TestDocumentoDeVenda_Movimentar(t *testing.T) {
 	type fields struct {
-		ID               string
-		DocumentoDeVenda DocumentoDeVenda
-		Cliente          Cliente
-		Movimentacoes    Movimentacoes
+		Situacao Situacao
 	}
 	type args struct {
+		mov        string
 		estoquista Estoquista
 		canal      string
 	}
 
 	estq := Estoquista{Nome: "Marcos Vieira Jr", Matricula: 12345, Filial: 1000}
-	arg := args{estoquista: estq, canal: "padrao"}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name:    "com Situacao CANCELAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelar}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao SEPARAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separar}},
-			args:    arg,
-			wantErr: assert.NoError,
-		},
-		{
-			name:    "com Situacao SEPARADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separado}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao ENTREGUE",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Entregue}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao CANCELADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelado}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Document{
-				ID:               tt.fields.ID,
-				DocumentoDeVenda: tt.fields.DocumentoDeVenda,
-				Cliente:          tt.fields.Cliente,
-				Movimentacoes:    tt.fields.Movimentacoes,
-			}
-
-			err := d.Separar(tt.args.estoquista, tt.args.canal)
-
-			tt.wantErr(t, err, fmt.Sprintf("Document.Separar(%#v, %#v)", tt.args.estoquista, tt.args.canal))
-
-			if err == nil {
-				assert.Equal(t, Situacao(Separado), d.DocumentoDeVenda.Situacao)
-				assert.Equal(t, 3, d.DocumentoDeVenda.OrdenacaoSituacao)
-				assert.Equal(t, tt.args.canal, d.DocumentoDeVenda.SeparacaoDeEstoque.Canal)
-				assert.Equal(t, tt.args.estoquista, d.DocumentoDeVenda.SeparacaoDeEstoque.Estoquista)
-			}
-		})
-	}
-}
-
-func TestDocument_Entregar(t *testing.T) {
-	type fields struct {
-		ID               string
-		DocumentoDeVenda DocumentoDeVenda
-		Cliente          Cliente
-		Movimentacoes    Movimentacoes
-	}
-	type args struct {
-		estoquista Estoquista
-		canal      string
-		mov        Movimentacoes
-	}
-
-	estq := Estoquista{Nome: "Marcos Vieira Jr", Matricula: 12345, Filial: 1000}
-	arg := args{estoquista: estq, canal: "pdv"}
 
 	tests := []struct {
 		name    string
@@ -105,127 +25,137 @@ func TestDocument_Entregar(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "com Situacao CANCELAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelar}},
-			args:    arg,
-			wantErr: true,
-		},
-		{
-			name:    "com Situacao SEPARAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separar}},
-			args:    arg,
+			name:    "Separar com Situacao SEPARAR",
+			fields:  fields{Situacao: Separar},
+			args:    args{mov: "SEPARADO", estoquista: estq, canal: "padrao"},
 			wantErr: false,
 		},
 		{
-			name:    "com Situacao SEPARADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separado}},
-			args:    arg,
-			wantErr: false,
-		},
-		{
-			name:    "com Situacao ENTREGUE",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Entregue}},
-			args:    arg,
+			name:    "Separar com Situacao CANCELAR",
+			fields:  fields{Situacao: Cancelar},
+			args:    args{mov: "SEPARADO", estoquista: estq, canal: "padrao"},
 			wantErr: true,
 		},
 		{
-			name:    "com Situacao CANCELADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelado}},
-			args:    arg,
+			name:    "Separar com Situacao SEPARADO",
+			fields:  fields{Situacao: Separado},
+			args:    args{mov: "SEPARADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Separar com Situacao ENTREGUE",
+			fields:  fields{Situacao: Entregue},
+			args:    args{mov: "SEPARADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Separar com Situacao CANCELADO",
+			fields:  fields{Situacao: Cancelado},
+			args:    args{mov: "SEPARADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Entregar com Situacao SEPARAR",
+			fields:  fields{Situacao: Separar},
+			args:    args{mov: "ENTREGUE", estoquista: estq, canal: "pdv"},
+			wantErr: false,
+		},
+		{
+			name:    "Entregar com Situacao CANCELAR",
+			fields:  fields{Situacao: Cancelar},
+			args:    args{mov: "ENTREGUE", estoquista: estq, canal: "pdv"},
+			wantErr: true,
+		},
+		{
+			name:    "Entregar com Situacao SEPARADO",
+			fields:  fields{Situacao: Separado},
+			args:    args{mov: "ENTREGUE", estoquista: estq, canal: "pdv"},
+			wantErr: false,
+		},
+		{
+			name:    "Entregar com Situacao ENTREGUE",
+			fields:  fields{Situacao: Entregue},
+			args:    args{mov: "ENTREGUE", estoquista: estq, canal: "pdv"},
+			wantErr: true,
+		},
+		{
+			name:    "Entregar com Situacao CANCELADO",
+			fields:  fields{Situacao: Cancelado},
+			args:    args{mov: "ENTREGUE", estoquista: estq, canal: "pdv"},
+			wantErr: true,
+		},
+		{
+			name:    "Cancelar com Situacao CANCELAR",
+			fields:  fields{Situacao: Cancelar},
+			args:    args{mov: "CANCELADO", estoquista: estq, canal: "padrao"},
+			wantErr: false,
+		},
+		{
+			name:    "Cancelar com Situacao SEPARAR",
+			fields:  fields{Situacao: Separar},
+			args:    args{mov: "CANCELADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Cancelar com Situacao SEPARADO",
+			fields:  fields{Situacao: Separado},
+			args:    args{mov: "CANCELADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Cancelar com Situacao ENTREGUE",
+			fields:  fields{Situacao: Entregue},
+			args:    args{mov: "CANCELADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Cancelar com Situacao CANCELADO",
+			fields:  fields{Situacao: Cancelado},
+			args:    args{mov: "CANCELADO", estoquista: estq, canal: "padrao"},
+			wantErr: true,
+		},
+		{
+			name:    "Movimentar para SEPARAR",
+			fields:  fields{Situacao: Separar},
+			args:    args{mov: "SEPARAR"},
+			wantErr: true,
+		},
+		{
+			name:    "Movimentar para CANCELAR",
+			fields:  fields{Situacao: Cancelar},
+			args:    args{mov: "CANCELAR"},
+			wantErr: true,
+		},
+		{
+			name:    "Movimentação inválida",
+			fields:  fields{Situacao: Separar},
+			args:    args{mov: "undefined"},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := &Document{
-				ID:               tt.fields.ID,
-				DocumentoDeVenda: tt.fields.DocumentoDeVenda,
-				Cliente:          tt.fields.Cliente,
-				Movimentacoes:    tt.fields.Movimentacoes,
+			d := &DocumentoDeVenda{
+				Situacao: tt.fields.Situacao,
 			}
-
 			var err error
-			if err = d.Entregar(tt.args.estoquista, tt.args.canal, tt.args.mov); (err != nil) != tt.wantErr {
-				t.Errorf("Document.Entregar() error = %v, wantErr %v", err, tt.wantErr)
+			if err = d.Movimentar(tt.args.mov, tt.args.estoquista, tt.args.canal); (err != nil) != tt.wantErr {
+				t.Errorf("DocumentoDeVenda.Movimentar() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
-				assert.Equal(t, Situacao(Entregue), d.DocumentoDeVenda.Situacao)
-				assert.Equal(t, 4, d.DocumentoDeVenda.OrdenacaoSituacao)
-				assert.Equal(t, tt.args.canal, d.DocumentoDeVenda.EntregaDeEstoque.Canal)
-				assert.Equal(t, tt.args.estoquista, d.DocumentoDeVenda.EntregaDeEstoque.Estoquista)
-				assert.NotNil(t, d.Movimentacoes)
-			}
-		})
-	}
-}
-
-func TestDocument_Cancelar(t *testing.T) {
-	type fields struct {
-		ID               string
-		DocumentoDeVenda DocumentoDeVenda
-		Cliente          Cliente
-		Movimentacoes    Movimentacoes
-	}
-	type args struct {
-		estoquista Estoquista
-		canal      string
-	}
-
-	estq := Estoquista{Nome: "Marcos Vieira Jr", Matricula: 12345, Filial: 1000}
-	arg := args{estoquista: estq, canal: "padrao"}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name:    "com Situacao CANCELAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelar}},
-			args:    arg,
-			wantErr: assert.NoError,
-		},
-		{
-			name:    "com Situacao SEPARAR",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separar}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao SEPARADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Separado}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao ENTREGUE",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Entregue}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-		{
-			name:    "com Situacao CANCELADO",
-			fields:  fields{DocumentoDeVenda: DocumentoDeVenda{Situacao: Cancelado}},
-			args:    arg,
-			wantErr: assert.Error,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Document{
-				ID:               tt.fields.ID,
-				DocumentoDeVenda: tt.fields.DocumentoDeVenda,
-				Cliente:          tt.fields.Cliente,
-				Movimentacoes:    tt.fields.Movimentacoes,
-			}
-			err := d.Cancelar(tt.args.estoquista, tt.args.canal)
-			tt.wantErr(t, err, fmt.Sprintf("Cancelar(%v)", tt.args.estoquista))
-			if err == nil {
-				assert.Equal(t, Situacao(Cancelado), d.DocumentoDeVenda.Situacao)
-				assert.Equal(t, 5, d.DocumentoDeVenda.OrdenacaoSituacao)
-				assert.Equal(t, "padrao", d.DocumentoDeVenda.CancelamentoDeEstoque.Canal)
-				assert.Equal(t, estq, d.DocumentoDeVenda.CancelamentoDeEstoque.Estoquista)
+				s := Situacao(tt.args.mov)
+				assert.Equal(t, s, d.Situacao)
+				assert.Equal(t, ordem[s], d.OrdenacaoSituacao)
+				if s == Separado {
+					assert.Equal(t, tt.args.canal, d.SeparacaoDeEstoque.Canal)
+					assert.Equal(t, tt.args.estoquista, d.SeparacaoDeEstoque.Estoquista)
+				} else if s == Entregue {
+					assert.Equal(t, tt.args.canal, d.EntregaDeEstoque.Canal)
+					assert.Equal(t, tt.args.estoquista, d.EntregaDeEstoque.Estoquista)
+				} else if s == Cancelado {
+					assert.Equal(t, tt.args.canal, d.CancelamentoDeEstoque.Canal)
+					assert.Equal(t, tt.args.estoquista, d.CancelamentoDeEstoque.Estoquista)
+				}
 			}
 		})
 	}
