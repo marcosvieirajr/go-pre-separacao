@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/viavarejo-internal/pre-separacao-api/cmd/web/routes"
 	"github.com/viavarejo-internal/pre-separacao-api/cmd/web/routes/handlers"
 	"github.com/viavarejo-internal/pre-separacao-api/kit/config"
 	logger "github.com/viavarejo-internal/pre-separacao-api/kit/log"
@@ -36,25 +37,23 @@ func init() {
 	l = logger.New(logConfig).WithFields(logFields)
 }
 
-func setupRouter(docHandler *handlers.Document, stkHandler *handlers.Stockist) *gin.Engine {
-	router := gin.Default()
-	v1 := router.Group("/v1")
-	{
-		v1.GET("/pre-separacoes", docHandler.ListAll())
-		v1.GET("/pre-separacoes/:filial/:document", docHandler.ListOne())
-		v1.PUT("/pre-separacoes/alterar-situacao", docHandler.ChangeSituation())
-		v1.PUT("/pre-separacoes/:filial/:document/:situation", docHandler.ChangeSituationPDV())
+func setupRouter() *gin.Engine {
 
-		v1.GET("/estoquistas", stkHandler.ListAll())
-	}
+	// handlers
+	docHandler := handlers.NewDocument(l)
+	stkHandler := handlers.NewStockist(l)
+
+	router := gin.Default()
+
+	// routes
+	routes.MakeStockistRoutes(router, stkHandler)
+	routes.MakeDocumentRoutes(router, docHandler)
+
 	return router
 }
 
 func main() {
-	docHandler := handlers.NewDocument(l)
-	stkHandler := handlers.NewStockist(l)
-
-	router := setupRouter(docHandler, stkHandler)
+	router := setupRouter()
 
 	httpAddr := fmt.Sprintf("%s:%s", config.HOST_NAME, config.HOST_PORT)
 	w := l.Writer()
