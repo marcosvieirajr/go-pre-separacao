@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/viavarejo-internal/pre-separacao-api/cmd/web/routes"
 	"github.com/viavarejo-internal/pre-separacao-api/cmd/web/routes/handlers"
+	"github.com/viavarejo-internal/pre-separacao-api/cmd/web/routes/middlewares"
 	"github.com/viavarejo-internal/pre-separacao-api/kit/config"
 	logger "github.com/viavarejo-internal/pre-separacao-api/kit/log"
 )
@@ -43,11 +44,14 @@ func setupRouter() *gin.Engine {
 	docHandler := handlers.NewDocument(l)
 	stkHandler := handlers.NewStockist(l)
 
+	// middlewares
+	JWTValidatorFunc := middlewares.JWTValidator(l)
+
 	router := gin.Default()
 
 	// routes
-	routes.MakeStockistRoutes(router, stkHandler)
-	routes.MakeDocumentRoutes(router, docHandler)
+	routes.MakeStockistRoutes(router, stkHandler, JWTValidatorFunc)
+	routes.MakeDocumentRoutes(router, docHandler, JWTValidatorFunc)
 
 	return router
 }
