@@ -50,6 +50,7 @@ func setupRouter() *gin.Engine {
 	router := gin.Default()
 
 	// routes
+	routes.MakeHealthRoutes(router)
 	routes.MakeStockistRoutes(router, stkHandler, JWTValidatorFunc)
 	routes.MakeDocumentRoutes(router, docHandler, JWTValidatorFunc)
 
